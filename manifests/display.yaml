@@ -1,0 +1,3 @@
+display:
+  wayland: {packages: [wayland]}
+  xorg: {packages: [xorg-server, xorg-xwayland]}

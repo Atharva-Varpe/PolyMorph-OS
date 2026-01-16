@@ -1,0 +1,36 @@
+# Package managers are tied to base targets.
+# The installer will auto-select the PM based on chosen base; do not offer as a separate netinstall group.
+# Instead, this mapping informs post-install scripts and bootstrap toolchains.
+
+arch:
+  package_manager: pacman
+  packages: [pacman]
+
+debian:
+  package_manager: apt
+  packages: [apt, apt-utils]
+
+ubuntu:
+  package_manager: apt
+  packages: [apt, apt-utils, ubuntu-keyring]
+
+fedora:
+  package_manager: dnf
+  packages: [dnf]
+
+opensuse:
+  package_manager: zypper
+  packages: [zypper]
+
+gentoo:
+  package_manager: emerge
+  packages: []
+  note: Provided inside Gentoo stage3; portage/emerge handled inside chroot.
+
+void:
+  package_manager: xbps
+  packages: [xbps]
+
+alpine:
+  package_manager: apk
+  packages: [apk-tools]

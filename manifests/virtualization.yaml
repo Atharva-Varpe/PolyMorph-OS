@@ -1,0 +1,5 @@
+virtualization:
+  kvm: {packages: [qemu-full, libvirt, virt-manager, qemu-guest-agent]}
+  virtualbox-host: {packages: [virtualbox, virtualbox-host-modules-arch]}
+  virtualbox-guest: {packages: [virtualbox-guest-utils]}
+  vmware: {packages: [open-vm-tools]}

@@ -1,0 +1,28 @@
+base_targets:
+  arch:
+    packages: [base, arch-install-scripts]
+    note: Arch install via pacstrap/mkarchroot.
+  debian:
+    packages: [debootstrap]
+    note: Use debootstrap to build Debian/Ubuntu roots.
+  ubuntu:
+    packages: [debootstrap]
+    note: Use debootstrap with ubuntu suites; add ubuntu-keyring if available.
+  fedora:
+    packages: [dnf]
+    note: Use dnf --installroot for Fedora-style roots.
+  opensuse:
+    packages: [zypper]
+    note: Use zypper --root for openSUSE-style roots.
+  gentoo:
+    packages: []
+    note: Use stage3 tarball + chroot; emerge/portage handled inside chroot.
+  void:
+    packages: [xbps]
+    note: Use xbps-install -S -r /target.
+  alpine:
+    packages: [apk-tools]
+    note: Use apk --root /target add base packages.
+notes:
+  - Ensure internet access in live session for netinstall.
+  - For non-Arch roots, Calamares custom post-install hooks are required to bootstrap; stubbed here.

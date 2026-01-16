@@ -1,0 +1,5 @@
+init_systems:
+  systemd: {packages: [systemd]}
+  openrc: {packages: [openrc] , note: Requires repo providing openrc for Arch (AUR/third-party).}
+  runit: {packages: [runit] , note: Requires repo providing runit for Arch (AUR/third-party).}
+  s6: {packages: [s6] , note: Requires repo providing s6 for Arch (AUR/third-party).}
