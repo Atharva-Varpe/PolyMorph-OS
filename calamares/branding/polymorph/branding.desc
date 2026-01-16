@@ -1,0 +1,8 @@
+---
+componentName: polymorph
+strings:
+  productName: "PolyMorph Installer"
+  shortProductName: "PolyMorph"
+style: breeze
+welcomeStyleCalamares: true
+windowSize: "1024x700"

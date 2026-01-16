@@ -1,0 +1,8 @@
+kernels:
+  linux: {packages: [linux, linux-headers]}
+  linux-lts: {packages: [linux-lts, linux-lts-headers]}
+  linux-zen: {packages: [linux-zen, linux-zen-headers]}
+  linux-hardened: {packages: [linux-hardened, linux-hardened-headers]}
+  custom:
+    packages: []
+    note: Provide pkg.tar.zst URL or local file and install via custom module/script.

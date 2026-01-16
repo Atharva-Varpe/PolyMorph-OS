@@ -1,0 +1,5 @@
+network:
+  networkmanager: {packages: [networkmanager, network-manager-applet]}
+  wicd: {packages: [wicd]}
+  connman: {packages: [connman]}
+  netctl: {packages: [netctl]}

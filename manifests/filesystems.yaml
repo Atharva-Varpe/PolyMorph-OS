@@ -1,0 +1,8 @@
+filesystems:
+  ext4: {packages: [e2fsprogs]}
+  btrfs: {packages: [btrfs-progs]}
+  xfs: {packages: [xfsprogs]}
+  f2fs: {packages: [f2fs-tools]}
+  zfs:
+    packages: [zfs-dkms, zfs-utils]
+    note: Requires kernel headers present for dkms; secure boot disable/enroll MOK.

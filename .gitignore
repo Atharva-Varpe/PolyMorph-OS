@@ -1,0 +1,19 @@
+# Build artifacts
+work/
+out/
+*.iso
+*.img
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log

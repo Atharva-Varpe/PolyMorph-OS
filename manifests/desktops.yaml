@@ -1,0 +1,13 @@
+desktops:
+  plasma-wayland: {packages: [plasma-desktop, plasma-wayland-session, plasma-meta]}
+  plasma-x11: {packages: [plasma-desktop, xorg-server, xorg-xwayland]}
+  gnome: {packages: [gnome]}
+  cinnamon: {packages: [cinnamon]}
+  mate: {packages: [mate]}
+  xfce: {packages: [xfce4]}
+  lxqt: {packages: [lxqt]}
+  lxde: {packages: [lxde]}
+  i3: {packages: [i3-wm, i3status, dmenu]}
+  bspwm: {packages: [bspwm, sxhkd]}
+  dwm: {packages: [dwm]}
+  openbox: {packages: [openbox, obconf]}

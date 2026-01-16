@@ -1,0 +1,39 @@
+ok so we want a single distro to be able to install all the possible linux distros
+we want freedom in selecting any window manager
+desktop environment
+software package
+kernel version
+filesystem
+package manager
+init system
+configuration tool
+network manager
+display server
+audio server
+graphics driver
+virtualization solution
+
+we want bare minimum install options and with all utilities available and a customizable installer
+
+config for now(config for live iso installer):
+base - arch
+installer - calamares
+wm - plasma kde (wayland)
+
+other option for installer
+base - arch
+installer - calamares
+wm - plasma kde (x11)
+
+installation options:
+base - arch, ubuntu, debian, fedora, opensuse, gentoo, void, alpine
+wm - i3, bspwm, dwm, openbox, xfce, lxde, lxqt, mate, cinnamon, gnome, plasma kde
+kernel - linux-lts, linux-zen, linux-hardened, custom kernel option
+filesystem - ext4, btrfs, xfs, f2fs, zfs
+package manager - pacman, apt, dnf, zypper, emerge, xbps, apk
+init system - systemd, openrc, runit, s6
+network manager - NetworkManager, wicd, connman, netctl
+display server - Xorg, Wayland
+audio server - PulseAudio, PipeWire, ALSA
+graphics driver - open source, proprietary (nvidia, amd)
+virtualization solution - VirtualBox, KVM, QEMU, VMware

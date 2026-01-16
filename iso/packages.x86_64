@@ -1,0 +1,44 @@
+# --- CORE ISO SYSTEM ---
+base
+linux
+linux-firmware
+mkinitcpio
+sudo
+arch-install-scripts
+zsh
+bash
+
+# --- BOOTLOADERS (For the ISO to boot on UEFI/BIOS) ---
+grub
+efibootmgr
+syslinux
+dosfstools
+mtools
+
+# --- DESKTOP (KDE Plasma for Live Environment) ---
+plasma-meta
+sddm
+konsole
+dolphin
+
+# --- DRIVERS (Crucial for graphics/wifi/vm) ---
+mesa
+xf86-video-amdgpu
+xf86-video-intel
+xf86-video-nouveau
+networkmanager
+network-manager-applet
+
+# --- INSTALLER & DEPENDENCIES ---
+calamares
+ckbcomp
+qt5-svg
+libsoup
+python-joblib
+
+# --- UTILS ---
+git
+wget
+nano
+os-prober
+
