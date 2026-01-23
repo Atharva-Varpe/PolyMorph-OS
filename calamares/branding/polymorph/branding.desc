@@ -1,8 +1,45 @@
 ---
 componentName: polymorph
+
+# Product Information
 strings:
-  productName: "PolyMorph Installer"
+  productName: "PolyMorph Linux"
   shortProductName: "PolyMorph"
-style: breeze
+  version: "1.0"
+  shortVersion: "1.0"
+  versionedName: "PolyMorph Linux 1.0"
+  shortVersionedName: "PolyMorph 1.0"
+  bootloaderEntryName: "PolyMorph"
+  productUrl: "https://polymorph.example.com"
+  supportUrl: "https://polymorph.example.com/support"
+  knownIssuesUrl: "https://polymorph.example.com/issues"
+  releaseNotesUrl: "https://polymorph.example.com/changelog"
+
+# Welcome Screen Customization
+slideshow: "show.qml"
+slideshowAPI: 2
+
+# UI Styling
+style:
+  sidebarBackground: "#2c3e50"
+  sidebarText: "#ffffff"
+  sidebarTextSelect: "#4caf50"
+  sidebarTextHighlight: "#4caf50"
+
+windowExpanding: normal
+windowSize: "1024x768"
+windowPlacement: "center"
+
+# Images (placeholders - add actual images to this directory)
+images:
+  productLogo: "logo.png"
+  productIcon: "icon.png"
+  productWelcome: "welcome.png"
+
+# Slideshow during installation
+uploadServer:
+  type: "none"  # Can be configured for crash reports
+
+# Presentation
 welcomeStyleCalamares: true
-windowSize: "1024x700"
+welcomeExpandingLogo: true

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PolyMorph First-Boot Wizard
+Exec=/usr/local/bin/polymorph-first-boot
+Terminal=true
+Categories=System;
+OnlyShowIn=KDE;GNOME;XFCE;
+X-KDE-autostart-condition=rcfile
+NoDisplay=false

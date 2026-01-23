@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 2 Improvements - 2026-01-23
+
+#### Added
+- **Quick Start Presets in Calamares**
+  - New `scripts/generate_presets.py` - generates preset selector module
+  - Preset descriptions with time/size estimates
+  - Integration with build system
+  
+- **Installation Configuration Export**
+  - New `scripts/export_config.py` - export installation configs
+  - YAML format for machine-readable configs
+  - Text format for human-readable summaries
+  - Includes metadata (hostname, user, installation date)
+  - Reproducible installation support
+
+- **Enhanced Calamares Branding**
+  - Updated `branding.desc` with comprehensive styling
+  - Product information and URLs
+  - Custom sidebar colors and styling
+  - Window sizing and placement options
+  - Support for product logos and images
+
+- **First-Boot Wizard**
+  - New `/usr/local/bin/polymorph-first-boot` wizard script
+  - Automatic first-boot execution via autostart
+  - Guided system update
+  - Network configuration
+  - Software installation assistance
+  - User group configuration
+  - Installation summary generation
+  - Welcome messages and useful commands
+
+- **Build System Enhancements**
+  - Integrated preset generation into build.sh
+  - Automatic executable permissions for first-boot wizard
+  - Better organization and logging
+
+- **Documentation Updates**
+  - Enhanced README.md with Phase 2 features
+  - Added preset information and quick start guides
+  - Updated status and feature lists
+
+#### Changed
+- README.md now showcases all Phase 1 & 2 features
+- Build script includes preset generation step
+- Improved overall user experience documentation
+
 ### Phase 1 Improvements - 2026-01-23
 
 #### Added
