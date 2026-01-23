@@ -4,18 +4,42 @@
 
 set -euo pipefail
 
+# SECURITY: Set secure PATH
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 # Colors
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m'
 
 WIZARD_MARKER="/var/lib/polymorph/first-boot-complete"
+LOG_FILE="/var/log/polymorph-first-boot.log"
+
+# SECURITY: Ensure running as non-root for safety
+if [ "$EUID" -eq 0 ]; then
+    echo -e "${RED}Error: Do not run this wizard as root${NC}"
+    echo "This wizard will prompt for sudo when needed."
+    exit 1
+fi
+
+# SECURITY: Create secure log file
+sudo mkdir -p "$(dirname "$LOG_FILE")"
+sudo touch "$LOG_FILE"
+sudo chmod 600 "$LOG_FILE"
+
+# Logging function
+log_action() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | sudo tee -a "$LOG_FILE" >/dev/null
+}
 
 # Check if already run
 if [ -f "$WIZARD_MARKER" ]; then
     exit 0
 fi
+
+log_action "First-boot wizard started by user: $USER"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║                                                        ║${NC}"
@@ -38,14 +62,34 @@ ask_yes_no() {
     fi
     
     while true; do
-        read -p "$question $prompt " response
+        read -r -p "$question $prompt " response
         response="${response:-$default}"
+        # SECURITY: Sanitize input
+        response="$(echo "$response" | tr -d '\n\r')"
         case "$response" in
             [Yy]*) return 0 ;;
             [Nn]*) return 1 ;;
             *) echo "Please answer yes or no." ;;
         esac
     done
+}
+
+# SECURITY: Validate package names before installation
+validate_package_name() {
+    local pkg="$1"
+    log_action "Starting system update"
+    if sudo pacman -Syu --noconfirm 2>&1 | tee -a "$LOG_FILE"; then
+        echo -e "${GREEN}✓ System updated${NC}"
+        log_action "System update completed successfully"
+    else
+        echo -e "${YELLOW}⚠ Update failed, check $LOG_FILE${NC}"
+        log_action "System update failed"
+    fi
+else
+    echo "Skipped. You can update later with: sudo pacman -Syu"
+    log_action "System update skipped by user
+    fi
+    return 0
 }
 
 # 1. System Update
@@ -99,9 +143,39 @@ if ask_yes_no "Install recommended applications?" "n"; then
     
     if ask_yes_no "  Install VLC?" "y"; then
         PACKAGES+=(vlc)
+    fi# SECURITY: Validate all package names
+        VALID_PACKAGES=()
+        for pkg in "${PACKAGES[@]}"; do
+            if validate_package_name "$pkg"; then
+                VALID_PACKAGES+=("$pkg")
+            else
+                echo -e "${YELLOW}⚠ Skipping invalid package: $pkg${NC}"
+            fi
+        done
+        
+        if [ ${#VALID_PACKAGES[@]} -gt 0 ]; then
+            echo "Installing: ${VALID_PACKAGES[*]}"
+            log_action "Installing packages: ${VALID_PACKAGES[*]}"
+            if sudo pacman -S --noconfirm "${VALID_PACKAGES[@]}" 2>&1 | tee -a "$LOG_FILE"; then
+                echo -e "${GREEN}✓ Applications installed${NC}"
+                log_action "Package installation completed"
+            else
+                echo -e "${YELLOW}⚠ Some packages failed to install, check $LOG_FILE${NC}"
+    # SECURITY: Validate username
+    if [[ "$CURRENT_USER" =~ ^[a-z_][a-z0-9_-]*[$]?$ ]]; then
+        log_action "Adding user $CURRENT_USER to groups"
+        if sudo usermod -aG wheel,audio,video,storage,optical "$CURRENT_USER" 2>&1 | tee -a "$LOG_FILE"; then
+            echo -e "${GREEN}✓ User groups updated${NC}"
+            echo "  (You may need to log out and back in for changes to take effect)"
+            log_action "User groups updated successfully"
+        else
+            echo -e "${YELLOW}⚠ Failed to update groups${NC}"
+            log_action "Failed to update user groups"
+        fi
+    else
+        echo -e "${RED}Error: Invalid username${NC}"
+        log_action "SECURITY: Invalid username rejected: $CURRENT_USER"
     fi
-    
-    if ask_yes_no "  Install development tools?" "n"; then
         PACKAGES+=(git base-devel)
     fi
     

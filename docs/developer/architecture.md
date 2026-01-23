@@ -10,9 +10,9 @@ PolyMorph is a data-driven Linux distribution installer that provides maximum us
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              User Interface (Calamares)              │
+│              User Interface (Calamares)             │
 ├─────────────────────────────────────────────────────┤
-│           Configuration Validation Layer             │
+│           Configuration Validation Layer            │
 ├──────────────┬──────────────────────┬───────────────┤
 │   Manifest   │   Compatibility      │   Build       │
 │   System     │   Matrix             │   System      │
