@@ -91,9 +91,15 @@ class ConfigValidator:
     def _validate_base(self, config: Dict, result: ValidationResult):
         """Validate base distribution selection."""
         base = config.get('base')
-        if not base:
-            result.add_error("No base distribution specified")
+        
+        # SECURITY: Validate base is provided and not empty
+        if not base or not isinstance(base, str) or not base.strip():
+            result.add_error("No base distribution specified - installation cannot proceed")
+            result.is_valid = False
             return
+        
+        # SECURITY: Sanitize input to prevent injection
+        base = base.strip().lower()
         
         if base not in self.matrix.get('bases', {}):
             result.add_error(f"Unknown base distribution: {base}")
@@ -114,8 +120,16 @@ class ConfigValidator:
         base = config.get('base')
         init = config.get('init')
         
-        if not init or not base:
+        # CRITICAL: Init system is required for installation
+        if not base:
+            return  # Base validation will catch this
+        
+        if not init or not isinstance(init, str) or not init.strip():
+            result.add_error("Init system must be specified - system will not boot without it")
+            result.is_valid = False
             return
+        
+        init = init.strip().lower()
         
         base_info = self.matrix.get('bases', {}).get(base, {})
         supported_inits = base_info.get('init_systems', [])
@@ -205,8 +219,16 @@ class ConfigValidator:
         base = config.get('base')
         kernel = config.get('kernel')
         
-        if not base or not kernel:
+        # CRITICAL: Kernel is required for system to boot
+        if not base:
+            return  # Base validation will catch this
+        
+        if not kernel or not isinstance(kernel, str) or not kernel.strip():
+            result.add_error("Kernel must be specified - system cannot boot without a kernel")
+            result.is_valid = False
             return
+        
+        kernel = kernel.strip().lower()
         
         base_info = self.matrix.get('bases', {}).get(base, {})
         supported_kernels = base_info.get('kernels', [])

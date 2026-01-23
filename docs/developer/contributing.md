@@ -338,14 +338,62 @@ Contributors are recognized in:
 - **Release notes** - Feature credits
 - **Documentation** - Author attribution
 
+## � Security Vulnerability Disclosure
+
+**Found a security vulnerability? Please report it responsibly.**
+
+### DO NOT:
+- ❌ Open a public GitHub issue for security vulnerabilities
+- ❌ Discuss the vulnerability publicly before it's fixed
+- ❌ Exploit the vulnerability
+
+### DO:
+1. ✅ Email security details privately to the maintainers
+2. ✅ Include:
+   - Clear description of the vulnerability
+   - Steps to reproduce
+   - Potential impact assessment
+   - Affected versions
+   - Suggested fix (if you have one)
+3. ✅ Allow 48 hours for initial response
+4. ✅ Work with maintainers on coordinated disclosure
+
+### What to Expect:
+- Initial response within 48 hours
+- Regular updates on fix progress
+- Credit in CHANGELOG.md (if desired)
+- Coordinated public disclosure after fix is released
+
+### Example Report:
+```
+Subject: [SECURITY] Command Injection in First-Boot Wizard
+
+Description: The first-boot wizard does not validate package names,
+allowing command injection via: packages="vim; rm -rf /"
+
+Steps to Reproduce:
+1. Boot installed system
+2. Run first-boot wizard
+3. Enter malicious package name: "test; malicious_command"
+4. Observe command execution
+
+Impact: High - arbitrary command execution as user
+
+Affected: v0.1.0, v0.2.0
+
+Suggested Fix: Add regex validation for package names
+```
+
+**We take security seriously and appreciate responsible disclosure.**
+
 ## 📞 Getting Help
 
 Stuck? Need guidance?
 
 - **Discord/Matrix** - Real-time chat
 - **GitHub Discussions** - Q&A forum
-- **Issue tracker** - Specific questions
-- **Email maintainers** - For sensitive issues
+- **Issue tracker** - Specific questions (non-security)
+- **Email maintainers** - For sensitive/security issues
 
 ## 📄 License
 
