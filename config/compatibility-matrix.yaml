@@ -1,0 +1,300 @@
+# PolyMorph Compatibility Matrix
+# Defines valid combinations and known incompatibilities
+
+version: "1.0"
+last_updated: "2026-01-23"
+
+# Supported base distributions
+bases:
+  arch:
+    status: "stable"
+    package_managers: [pacman]
+    init_systems: [systemd, openrc, runit, s6]
+    kernels: [linux, linux-lts, linux-zen, linux-hardened]
+    filesystems: [ext4, btrfs, xfs, f2fs]
+  
+  debian:
+    status: "experimental"
+    package_managers: [apt]
+    init_systems: [systemd, sysvinit]
+    kernels: [linux]
+    filesystems: [ext4, btrfs, xfs]
+  
+  ubuntu:
+    status: "experimental"
+    package_managers: [apt]
+    init_systems: [systemd]
+    kernels: [linux]
+    filesystems: [ext4, btrfs, xfs]
+  
+  fedora:
+    status: "experimental"
+    package_managers: [dnf]
+    init_systems: [systemd]
+    kernels: [linux]
+    filesystems: [ext4, btrfs, xfs]
+  
+  opensuse:
+    status: "experimental"
+    package_managers: [zypper]
+    init_systems: [systemd]
+    kernels: [linux]
+    filesystems: [ext4, btrfs, xfs]
+  
+  gentoo:
+    status: "experimental"
+    package_managers: [emerge]
+    init_systems: [openrc, systemd]
+    kernels: [linux, linux-lts, linux-zen, linux-hardened, custom]
+    filesystems: [ext4, btrfs, xfs, f2fs]
+  
+  void:
+    status: "experimental"
+    package_managers: [xbps]
+    init_systems: [runit]
+    kernels: [linux, linux-lts]
+    filesystems: [ext4, btrfs, xfs, f2fs]
+  
+  alpine:
+    status: "experimental"
+    package_managers: [apk]
+    init_systems: [openrc]
+    kernels: [linux, linux-lts]
+    filesystems: [ext4, btrfs, xfs, f2fs]
+
+# Desktop environments and their requirements
+desktops:
+  plasma-kde:
+    requires_init: [systemd]
+    display_servers: [wayland, xorg]
+    min_ram_mb: 2048
+    status: "stable"
+  
+  gnome:
+    requires_init: [systemd]
+    display_servers: [wayland, xorg]
+    min_ram_mb: 2048
+    status: "stable"
+  
+  xfce:
+    requires_init: [systemd, openrc, runit, s6]
+    display_servers: [xorg]
+    min_ram_mb: 768
+    status: "stable"
+  
+  mate:
+    requires_init: [systemd, openrc, runit, s6]
+    display_servers: [xorg]
+    min_ram_mb: 768
+    status: "stable"
+  
+  cinnamon:
+    requires_init: [systemd]
+    display_servers: [xorg]
+    min_ram_mb: 2048
+    status: "stable"
+  
+  lxqt:
+    requires_init: [systemd, openrc, runit, s6]
+    display_servers: [xorg]
+    min_ram_mb: 512
+    status: "stable"
+  
+  lxde:
+    requires_init: [systemd, openrc, runit, s6]
+    display_servers: [xorg]
+    min_ram_mb: 512
+    status: "stable"
+
+# Window managers (lightweight alternatives)
+window_managers:
+  i3:
+    requires_init: [systemd, openrc, runit, s6]
+    display_servers: [xorg]
+    min_ram_mb: 256
+    status: "stable"
+  
+  bspwm:
+    requires_init: [systemd, openrc, runit, s6]
+    display_servers: [xorg]
+    min_ram_mb: 256
+    status: "stable"
+  
+  dwm:
+    requires_init: [systemd, openrc, runit, s6]
+    display_servers: [xorg]
+    min_ram_mb: 128
+    status: "stable"
+  
+  openbox:
+    requires_init: [systemd, openrc, runit, s6]
+    display_servers: [xorg]
+    min_ram_mb: 256
+    status: "stable"
+
+# Known incompatibilities (will cause validation errors)
+incompatibilities:
+  - name: "ZFS on non-LTS kernels"
+    condition:
+      filesystem: zfs
+      kernel: [linux-zen, linux-hardened]
+    reason: "ZFS DKMS modules may not build reliably on zen/hardened kernels"
+    severity: "warning"
+  
+  - name: "GNOME requires systemd"
+    condition:
+      desktop: gnome
+      init: [openrc, runit, s6, sysvinit]
+    reason: "GNOME has hard dependencies on systemd components (logind, etc.)"
+    severity: "error"
+  
+  - name: "KDE Plasma requires systemd"
+    condition:
+      desktop: plasma-kde
+      init: [openrc, runit, s6, sysvinit]
+    reason: "KDE Plasma requires systemd for full functionality"
+    severity: "error"
+  
+  - name: "Cinnamon requires systemd"
+    condition:
+      desktop: cinnamon
+      init: [openrc, runit, s6, sysvinit]
+    reason: "Cinnamon depends on systemd components"
+    severity: "error"
+  
+  - name: "Wayland unavailable on most WMs"
+    condition:
+      wm: [i3, bspwm, dwm, openbox]
+      display_server: wayland
+    reason: "These window managers only support X11"
+    severity: "error"
+  
+  - name: "Void Linux only supports runit"
+    condition:
+      base: void
+      init: [systemd, openrc, s6, sysvinit]
+    reason: "Void Linux is designed around runit as init system"
+    severity: "error"
+  
+  - name: "Alpine Linux only supports OpenRC"
+    condition:
+      base: alpine
+      init: [systemd, runit, s6, sysvinit]
+    reason: "Alpine Linux uses OpenRC as its init system"
+    severity: "error"
+
+# Filesystem-specific requirements
+filesystem_requirements:
+  zfs:
+    requires_packages: [zfs-dkms, zfs-utils]
+    kernel_modules: [zfs]
+    min_ram_mb: 1024
+    notes: "Requires kernel headers and DKMS for module compilation"
+  
+  btrfs:
+    requires_packages: [btrfs-progs]
+    min_ram_mb: 512
+  
+  xfs:
+    requires_packages: [xfsprogs]
+    min_ram_mb: 512
+  
+  f2fs:
+    requires_packages: [f2fs-tools]
+    min_ram_mb: 512
+  
+  ext4:
+    requires_packages: [e2fsprogs]
+    min_ram_mb: 256
+
+# Installation time estimates (in minutes, approximate)
+time_estimates:
+  base_minimal: 10
+  base_with_desktop: 30
+  gentoo_compile_factor: 6.0  # Multiply by this for Gentoo
+  network_speed_factor: 1.5  # Add 50% for slow networks
+
+# Recommended configurations (quick start profiles)
+presets:
+  minimal:
+    name: "Minimal Install"
+    description: "Lightweight system with no GUI"
+    base: arch
+    init: systemd
+    kernel: linux-lts
+    filesystem: ext4
+    package_manager: pacman
+    wm: none
+    estimated_size_mb: 1500
+    estimated_time_min: 10
+  
+  desktop:
+    name: "Desktop Install"
+    description: "Modern desktop with KDE Plasma"
+    base: arch
+    init: systemd
+    kernel: linux
+    filesystem: ext4
+    package_manager: pacman
+    desktop: plasma-kde
+    display_server: wayland
+    audio: pipewire
+    estimated_size_mb: 6000
+    estimated_time_min: 30
+  
+  gaming:
+    name: "Gaming Setup"
+    description: "Optimized for gaming with Zen kernel"
+    base: arch
+    init: systemd
+    kernel: linux-zen
+    filesystem: btrfs
+    package_manager: pacman
+    desktop: plasma-kde
+    display_server: wayland
+    audio: pipewire
+    graphics: proprietary
+    estimated_size_mb: 8000
+    estimated_time_min: 45
+  
+  developer:
+    name: "Developer Workstation"
+    description: "Development-focused with modern tools"
+    base: arch
+    init: systemd
+    kernel: linux-lts
+    filesystem: btrfs
+    package_manager: pacman
+    desktop: gnome
+    display_server: wayland
+    audio: pipewire
+    virtualization: kvm
+    estimated_size_mb: 7000
+    estimated_time_min: 40
+  
+  server:
+    name: "Server Install"
+    description: "Headless server configuration"
+    base: arch
+    init: systemd
+    kernel: linux-lts
+    filesystem: ext4
+    package_manager: pacman
+    wm: none
+    network: networkmanager
+    estimated_size_mb: 2000
+    estimated_time_min: 15
+  
+  lightweight:
+    name: "Lightweight Desktop"
+    description: "Low resource desktop with i3"
+    base: arch
+    init: runit
+    kernel: linux-lts
+    filesystem: ext4
+    package_manager: pacman
+    wm: i3
+    display_server: xorg
+    audio: pulseaudio
+    estimated_size_mb: 3000
+    estimated_time_min: 20
