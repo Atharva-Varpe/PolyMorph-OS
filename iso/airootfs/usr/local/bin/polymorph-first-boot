@@ -1,0 +1,172 @@
+#!/bin/bash
+# PolyMorph First-Boot Wizard
+# Runs on first boot to help users configure their new system
+
+set -euo pipefail
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+WIZARD_MARKER="/var/lib/polymorph/first-boot-complete"
+
+# Check if already run
+if [ -f "$WIZARD_MARKER" ]; then
+    exit 0
+fi
+
+echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║                                                        ║${NC}"
+echo -e "${BLUE}║          Welcome to PolyMorph Linux! 🎉                ║${NC}"
+echo -e "${BLUE}║                                                        ║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
+echo ""
+echo "This wizard will help you configure your new system."
+echo ""
+
+# Function to ask yes/no
+ask_yes_no() {
+    local question="$1"
+    local default="${2:-n}"
+    
+    if [ "$default" = "y" ]; then
+        prompt="[Y/n]"
+    else
+        prompt="[y/N]"
+    fi
+    
+    while true; do
+        read -p "$question $prompt " response
+        response="${response:-$default}"
+        case "$response" in
+            [Yy]*) return 0 ;;
+            [Nn]*) return 1 ;;
+            *) echo "Please answer yes or no." ;;
+        esac
+    done
+}
+
+# 1. System Update
+echo -e "${GREEN}[1/5] System Update${NC}"
+echo "It's recommended to update your system after installation."
+if ask_yes_no "Would you like to update now?" "y"; then
+    echo "Updating system packages..."
+    sudo pacman -Syu --noconfirm
+    echo -e "${GREEN}✓ System updated${NC}"
+else
+    echo "Skipped. You can update later with: sudo pacman -Syu"
+fi
+echo ""
+
+# 2. Network Configuration
+echo -e "${GREEN}[2/5] Network Configuration${NC}"
+if systemctl is-enabled NetworkManager >/dev/null 2>&1; then
+    echo "NetworkManager is already enabled."
+else
+    if ask_yes_no "Enable NetworkManager for easy network management?" "y"; then
+        sudo systemctl enable NetworkManager
+        sudo systemctl start NetworkManager
+        echo -e "${GREEN}✓ NetworkManager enabled${NC}"
+    fi
+fi
+echo ""
+
+# 3. Additional Software
+echo -e "${GREEN}[3/5] Additional Software${NC}"
+echo "Would you like to install commonly used applications?"
+echo ""
+echo "Available options:"
+echo "  1) Web Browser (Firefox)"
+echo "  2) Office Suite (LibreOffice)"
+echo "  3) Media Player (VLC)"
+echo "  4) Text Editor (VS Code from AUR)"
+echo "  5) Development Tools (git, base-devel)"
+echo "  6) Skip"
+echo ""
+
+if ask_yes_no "Install recommended applications?" "n"; then
+    PACKAGES=()
+    
+    if ask_yes_no "  Install Firefox?" "y"; then
+        PACKAGES+=(firefox)
+    fi
+    
+    if ask_yes_no "  Install LibreOffice?" "n"; then
+        PACKAGES+=(libreoffice-fresh)
+    fi
+    
+    if ask_yes_no "  Install VLC?" "y"; then
+        PACKAGES+=(vlc)
+    fi
+    
+    if ask_yes_no "  Install development tools?" "n"; then
+        PACKAGES+=(git base-devel)
+    fi
+    
+    if [ ${#PACKAGES[@]} -gt 0 ]; then
+        echo "Installing: ${PACKAGES[*]}"
+        sudo pacman -S --noconfirm "${PACKAGES[@]}"
+        echo -e "${GREEN}✓ Applications installed${NC}"
+    fi
+fi
+echo ""
+
+# 4. User Configuration
+echo -e "${GREEN}[4/5] User Configuration${NC}"
+if ask_yes_no "Would you like to add your user to additional groups? (wheel, audio, video)" "y"; then
+    CURRENT_USER="$USER"
+    sudo usermod -aG wheel,audio,video,storage,optical "$CURRENT_USER"
+    echo -e "${GREEN}✓ User groups updated${NC}"
+    echo "  (You may need to log out and back in for changes to take effect)"
+fi
+echo ""
+
+# 5. System Information
+echo -e "${GREEN}[5/5] System Information${NC}"
+echo "Your PolyMorph installation details:"
+echo ""
+echo "  Kernel: $(uname -r)"
+echo "  Desktop: ${XDG_CURRENT_DESKTOP:-None}"
+echo "  Shell: $SHELL"
+echo ""
+
+# Save configuration summary
+mkdir -p /var/lib/polymorph
+cat > /var/lib/polymorph/install-summary.txt <<EOF
+PolyMorph Installation Summary
+==============================
+Date: $(date)
+Kernel: $(uname -r)
+Desktop: ${XDG_CURRENT_DESKTOP:-None}
+User: $USER
+Hostname: $(hostname)
+EOF
+
+echo -e "${GREEN}Installation summary saved to: /var/lib/polymorph/install-summary.txt${NC}"
+echo ""
+
+# Mark as complete
+sudo mkdir -p "$(dirname "$WIZARD_MARKER")"
+sudo touch "$WIZARD_MARKER"
+
+echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║                                                        ║${NC}"
+echo -e "${BLUE}║          First-Boot Setup Complete! ✓                  ║${NC}"
+echo -e "${BLUE}║                                                        ║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
+echo ""
+echo "Useful commands:"
+echo "  • Update system: sudo pacman -Syu"
+echo "  • Install software: sudo pacman -S <package>"
+echo "  • Search packages: pacman -Ss <keyword>"
+echo "  • System info: neofetch (install with: sudo pacman -S neofetch)"
+echo ""
+echo "Documentation: /usr/share/doc/polymorph/"
+echo "Community: https://polymorph.example.com/community"
+echo ""
+echo "Enjoy your PolyMorph system!"
+echo ""
+
+read -p "Press Enter to continue..."

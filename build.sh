@@ -154,6 +154,20 @@ fi
 log_success "Netinstall manifest generated"
 
 # ============================================================================
+# Generate Quick Start Presets
+# ============================================================================
+
+if [ -f "scripts/generate_presets.py" ]; then
+    log_info "Generating quick start presets..."
+    
+    if python3 scripts/generate_presets.py; then
+        log_success "Quick start presets generated"
+    else
+        log_warning "Failed to generate presets (continuing anyway)"
+    fi
+fi
+
+# ============================================================================
 # Sync Calamares Configuration
 # ============================================================================
 
@@ -168,6 +182,18 @@ if ! cp -a calamares/* "$CALAMARES_DEST"/; then
 fi
 
 log_success "Calamares configuration synced"
+
+# ============================================================================
+# Set Executable Permissions
+# ============================================================================
+
+log_info "Setting executable permissions..."
+
+# Make first-boot wizard executable
+if [ -f "iso/airootfs/usr/local/bin/polymorph-first-boot" ]; then
+    chmod +x "iso/airootfs/usr/local/bin/polymorph-first-boot"
+    log_success "First-boot wizard permissions set"
+fi
 
 # ============================================================================
 # Cleanup Previous Build Artifacts
