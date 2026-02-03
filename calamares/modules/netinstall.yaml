@@ -1,35 +1,53 @@
----
----
-# PolyMorph Netinstall Configuration
-# Auto-generated from manifests/ - DO NOT EDIT MANUALLY
-# Run: scripts/generate_netinstall.py to regenerate
+# PolyMorph OS - Unified Multi-Distribution Installer
+# 
+# ONE ISO - ANY DISTRIBUTION
+# 
+# Architecture:
+#   - Live Environment: Arch Linux (provides bootstrap tools)
+#   - Target Installation: User's choice (Arch, Debian, Ubuntu, etc.)
+# 
+# How it works:
+#   1. User boots Arch-based live ISO
+#   2. Calamares installer loads this configuration
+#   3. User selects BASE DISTRIBUTION (which OS to install)
+#   4. User selects packages compatible with chosen distro
+#   5. Custom module bootstraps selected distro to disk
+# 
+# Auto-generated from manifests - DO NOT EDIT MANUALLY
+# 
 
+- name: Base Distribution
+  description: Choose which Linux distribution to install (SELECT EXACTLY ONE)
+  selected: true
+  critical: true
+  immutable: false
+  expanded: true
+  packages: []
+  subgroups: 
+    - {'name': 'Arch', 'description': 'Arch base system', 'selected': True, 'critical': False, 'packages': ['__POLYMORPH_BASE__ARCH__']}
+    - {'name': 'Debian', 'description': 'Debian base system', 'selected': False, 'critical': False, 'packages': ['__POLYMORPH_BASE__DEBIAN__']}
+    - {'name': 'Ubuntu', 'description': 'Ubuntu base system', 'selected': False, 'critical': False, 'packages': ['__POLYMORPH_BASE__UBUNTU__']}
+    - {'name': 'Fedora', 'description': 'Fedora base system', 'selected': False, 'critical': False, 'packages': ['__POLYMORPH_BASE__FEDORA__']}
+    - {'name': 'Opensuse', 'description': 'Opensuse base system', 'selected': False, 'critical': False, 'packages': ['__POLYMORPH_BASE__OPENSUSE__']}
+    - {'name': 'Gentoo', 'description': 'Gentoo base system', 'selected': False, 'critical': False, 'packages': ['__POLYMORPH_BASE__GENTOO__']}
+    - {'name': 'Void', 'description': 'Void base system', 'selected': False, 'critical': False, 'packages': ['__POLYMORPH_BASE__VOID__']}
+    - {'name': 'Alpine', 'description': 'Alpine base system', 'selected': False, 'critical': False, 'packages': ['__POLYMORPH_BASE__ALPINE__']}
 - name: Core System
-  description: Base system packages (required)
+  description: Essential system packages (automatically included)
   selected: true
   critical: true
   immutable: true
   expanded: false
-  packages:
-    - sudo
-    - nano
-    - base-devel
-    - base
-    - amd-ucode
-    - linux-firmware
-    - intel-ucode
-    - vim
+  packages: []
 - name: Bootloader
   description: GRUB bootloader (required)
   selected: true
   critical: true
   immutable: false
   expanded: false
-  packages:
-    - dosfstools
+  packages: 
     - grub
     - efibootmgr
-    - mtools
     - os-prober
 - name: Kernels
   description: Choose kernels components
@@ -38,40 +56,6 @@
   immutable: false
   expanded: true
   packages: []
-  subgroups:
-    - name: Linux
-      description: linux packages
-      selected: false
-      critical: false
-      packages:
-        - linux
-        - linux-headers
-    - name: Linux Lts
-      description: linux-lts packages
-      selected: false
-      critical: false
-      packages:
-        - linux-lts
-        - linux-lts-headers
-    - name: Linux Zen
-      description: linux-zen packages
-      selected: false
-      critical: false
-      packages:
-        - linux-zen
-        - linux-zen-headers
-    - name: Linux Hardened
-      description: linux-hardened packages
-      selected: false
-      critical: false
-      packages:
-        - linux-hardened
-        - linux-hardened-headers
-    - name: Custom
-      description: Provide pkg.tar.zst URL or local file and install via custom module/script.
-      selected: false
-      critical: false
-      packages: []
 - name: Desktop Environments
   description: Choose desktop environments components
   selected: false
@@ -79,87 +63,6 @@
   immutable: false
   expanded: true
   packages: []
-  subgroups:
-    - name: Plasma Wayland
-      description: plasma-wayland packages
-      selected: false
-      critical: false
-      packages:
-        - plasma-desktop
-        - plasma-wayland-session
-        - plasma-meta
-    - name: Plasma X11
-      description: plasma-x11 packages
-      selected: false
-      critical: false
-      packages:
-        - plasma-desktop
-        - xorg-server
-        - xorg-xwayland
-    - name: Gnome
-      description: gnome packages
-      selected: false
-      critical: false
-      packages:
-        - gnome
-    - name: Cinnamon
-      description: cinnamon packages
-      selected: false
-      critical: false
-      packages:
-        - cinnamon
-    - name: Mate
-      description: mate packages
-      selected: false
-      critical: false
-      packages:
-        - mate
-    - name: Xfce
-      description: xfce packages
-      selected: false
-      critical: false
-      packages:
-        - xfce4
-    - name: Lxqt
-      description: lxqt packages
-      selected: false
-      critical: false
-      packages:
-        - lxqt
-    - name: Lxde
-      description: lxde packages
-      selected: false
-      critical: false
-      packages:
-        - lxde
-    - name: I3
-      description: i3 packages
-      selected: false
-      critical: false
-      packages:
-        - i3-wm
-        - i3status
-        - dmenu
-    - name: Bspwm
-      description: bspwm packages
-      selected: false
-      critical: false
-      packages:
-        - bspwm
-        - sxhkd
-    - name: Dwm
-      description: dwm packages
-      selected: false
-      critical: false
-      packages:
-        - dwm
-    - name: Openbox
-      description: openbox packages
-      selected: false
-      critical: false
-      packages:
-        - openbox
-        - obconf
 - name: Display Server
   description: Choose display server components
   selected: true
@@ -167,20 +70,6 @@
   immutable: false
   expanded: false
   packages: []
-  subgroups:
-    - name: Wayland
-      description: wayland packages
-      selected: false
-      critical: false
-      packages:
-        - wayland
-    - name: Xorg
-      description: xorg packages
-      selected: false
-      critical: false
-      packages:
-        - xorg-server
-        - xorg-xwayland
 - name: Init System
   description: Choose init system components
   selected: true
@@ -188,31 +77,11 @@
   immutable: false
   expanded: false
   packages: []
-  subgroups:
-    - name: Systemd
-      description: systemd packages
-      selected: true
-      critical: false
-      packages:
-        - systemd
-    - name: Openrc
-      description: Requires repo providing openrc for Arch (AUR/third-party).
-      selected: false
-      critical: false
-      packages:
-        - openrc
-    - name: Runit
-      description: Requires repo providing runit for Arch (AUR/third-party).
-      selected: false
-      critical: false
-      packages:
-        - runit
-    - name: S6
-      description: Requires repo providing s6 for Arch (AUR/third-party).
-      selected: false
-      critical: false
-      packages:
-        - s6
+  subgroups: 
+    - {'name': 'Systemd', 'description': 'systemd packages', 'selected': True, 'critical': False, 'packages': ['systemd']}
+    - {'name': 'Openrc', 'description': 'Requires repo providing openrc for Arch (AUR/third-party).', 'selected': False, 'critical': False, 'packages': ['openrc']}
+    - {'name': 'Runit', 'description': 'Requires repo providing runit for Arch (AUR/third-party).', 'selected': False, 'critical': False, 'packages': ['runit']}
+    - {'name': 'S6', 'description': 'Requires repo providing s6 for Arch (AUR/third-party).', 'selected': False, 'critical': False, 'packages': ['s6']}
 - name: Filesystem Tools
   description: Choose filesystem tools components
   selected: true
@@ -220,38 +89,6 @@
   immutable: false
   expanded: false
   packages: []
-  subgroups:
-    - name: Ext4
-      description: ext4 packages
-      selected: false
-      critical: false
-      packages:
-        - e2fsprogs
-    - name: Btrfs
-      description: btrfs packages
-      selected: false
-      critical: false
-      packages:
-        - btrfs-progs
-    - name: Xfs
-      description: xfs packages
-      selected: false
-      critical: false
-      packages:
-        - xfsprogs
-    - name: F2Fs
-      description: f2fs packages
-      selected: false
-      critical: false
-      packages:
-        - f2fs-tools
-    - name: Zfs
-      description: Requires kernel headers present for dkms; secure boot disable/enroll MOK.
-      selected: false
-      critical: false
-      packages:
-        - zfs-dkms
-        - zfs-utils
 - name: Network Manager
   description: Choose network manager components
   selected: true
@@ -259,32 +96,6 @@
   immutable: false
   expanded: false
   packages: []
-  subgroups:
-    - name: Networkmanager
-      description: networkmanager packages
-      selected: true
-      critical: false
-      packages:
-        - networkmanager
-        - network-manager-applet
-    - name: Wicd
-      description: wicd packages
-      selected: false
-      critical: false
-      packages:
-        - wicd
-    - name: Connman
-      description: connman packages
-      selected: false
-      critical: false
-      packages:
-        - connman
-    - name: Netctl
-      description: netctl packages
-      selected: false
-      critical: false
-      packages:
-        - netctl
 - name: Audio Server
   description: Choose audio server components
   selected: true
@@ -292,30 +103,6 @@
   immutable: false
   expanded: false
   packages: []
-  subgroups:
-    - name: Pulseaudio
-      description: pulseaudio packages
-      selected: false
-      critical: false
-      packages:
-        - pulseaudio
-        - pavucontrol
-    - name: Pipewire
-      description: pipewire packages
-      selected: true
-      critical: false
-      packages:
-        - pipewire
-        - pipewire-alsa
-        - pipewire-pulse
-        - wireplumber
-    - name: Alsa
-      description: alsa packages
-      selected: false
-      critical: false
-      packages:
-        - alsa-utils
-        - alsa-plugins
 - name: Graphics Drivers
   description: Choose graphics drivers components
   selected: true
@@ -323,41 +110,6 @@
   immutable: false
   expanded: true
   packages: []
-  subgroups:
-    - name: Open Intel
-      description: open-intel packages
-      selected: false
-      critical: false
-      packages:
-        - mesa
-        - xf86-video-intel
-    - name: Open Amd
-      description: open-amd packages
-      selected: false
-      critical: false
-      packages:
-        - mesa
-        - xf86-video-amdgpu
-    - name: Open Nouveau
-      description: open-nouveau packages
-      selected: false
-      critical: false
-      packages:
-        - mesa
-        - xf86-video-nouveau
-    - name: Nvidia Proprietary
-      description: nvidia-proprietary packages
-      selected: false
-      critical: false
-      packages:
-        - nvidia-dkms
-        - nvidia-utils
-    - name: Vmware
-      description: vmware packages
-      selected: false
-      critical: false
-      packages:
-        - open-vm-tools
 - name: Virtualization
   description: Choose virtualization components
   selected: false
@@ -365,32 +117,3 @@
   immutable: false
   expanded: false
   packages: []
-  subgroups:
-    - name: Kvm
-      description: kvm packages
-      selected: false
-      critical: false
-      packages:
-        - qemu-full
-        - libvirt
-        - virt-manager
-        - qemu-guest-agent
-    - name: Virtualbox Host
-      description: virtualbox-host packages
-      selected: false
-      critical: false
-      packages:
-        - virtualbox
-        - virtualbox-host-modules-arch
-    - name: Virtualbox Guest
-      description: virtualbox-guest packages
-      selected: false
-      critical: false
-      packages:
-        - virtualbox-guest-utils
-    - name: Vmware
-      description: vmware packages
-      selected: false
-      critical: false
-      packages:
-        - open-vm-tools

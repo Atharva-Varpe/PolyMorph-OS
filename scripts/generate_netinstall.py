@@ -107,24 +107,50 @@ def create_netinstall_group(name, items, selected=False, critical=False, immutab
     return group
 
 def generate_netinstall(manifests):
-    """Generate netinstall configuration from manifests."""
+    """Generate unified netinstall configuration with all distributions."""
     groups = []
     
-    # Core System (immutable, required)
-    if 'base' in manifests and 'arch' in manifests['base'].get('base_targets', {}):
-        core_packages = manifests['base']['base_targets']['arch'].get('packages', [])
-        core_packages.extend(['base-devel', 'linux-firmware', 'intel-ucode', 'amd-ucode', 'sudo', 'nano', 'vim'])
+    # Base Distribution Selector (CRITICAL - User chooses which OS to install)
+    # This is the FIRST and MOST IMPORTANT choice - determines target OS
+    if 'base' in manifests and 'base_targets' in manifests['base']:
+        base_subgroups = []
+        for distro, config in manifests['base']['base_targets'].items():
+            note = config.get('note', f'{distro.title()} base system')
+            
+            # Mark with special identifier so Calamares module knows which bootstrap to use
+            base_subgroups.append({
+                "name": distro.title(),
+                "description": note,
+                "selected": (distro == 'arch'),  # Arch selected by default
+                "critical": False,
+                "packages": [f"__POLYMORPH_BASE__{distro.upper()}__"]  # Marker for custom module
+            })
+        
         groups.append({
-            "name": "Core System",
-            "description": "Base system packages (required)",
+            "name": "Base Distribution",
+            "description": "Choose which Linux distribution to install (SELECT EXACTLY ONE)",
             "selected": True,
             "critical": True,
-            "immutable": True,
-            "expanded": False,
-            "packages": list(set(core_packages))
+            "immutable": False,
+            "expanded": True,
+            "packages": [],
+            "subgroups": base_subgroups
         })
     
-    # Bootloader (required)
+    # Core System Packages (Common to all - installed via bootstrap)
+    # NOTE: These packages are NOT installed to target system
+    # They're available in the live environment for bootstrapping
+    groups.append({
+        "name": "Core System",
+        "description": "Essential system packages (automatically included)",
+        "selected": True,
+        "critical": True,
+        "immutable": True,
+        "expanded": False,
+        "packages": []  # Empty - base system comes from bootstrap process
+    })
+    
+    # Bootloader (required for all distributions)
     groups.append({
         "name": "Bootloader",
         "description": "GRUB bootloader (required)",
@@ -132,7 +158,7 @@ def generate_netinstall(manifests):
         "critical": True,
         "immutable": False,
         "expanded": False,
-        "packages": ["grub", "efibootmgr", "os-prober", "dosfstools", "mtools"]
+        "packages": ["grub", "efibootmgr", "os-prober"]
     })
     
     # Kernels
@@ -242,24 +268,42 @@ def main():
     manifests_dir = script_dir / "manifests"
     output_file = script_dir / "calamares" / "modules" / "netinstall.yaml"
     
-    print(f"Loading manifests from {manifests_dir}...")
+    print(f"[INFO] Loading manifests from {manifests_dir}...")
     manifests = load_manifests(manifests_dir)
     
-    print(f"Generating netinstall configuration...")
+    print(f"[INFO] Generating unified multi-distro netinstall configuration...")
     groups = generate_netinstall(manifests)
     
-    print(f"Writing to {output_file}...")
+    print(f"[INFO] Writing to {output_file}...")
     output_file.parent.mkdir(parents=True, exist_ok=True)
     
     with open(output_file, 'w') as f:
-        f.write("---\n")
-        f.write("# PolyMorph Netinstall Configuration\n")
-        f.write("# Auto-generated from manifests/ - DO NOT EDIT MANUALLY\n")
-        f.write("# Run: scripts/generate_netinstall.py to regenerate\n\n")
+        f.write("# PolyMorph OS - Unified Multi-Distribution Installer\n")
+        f.write("# \n")
+        f.write("# ONE ISO - ANY DISTRIBUTION\n")
+        f.write("# \n")
+        f.write("# Architecture:\n")
+        f.write("#   - Live Environment: Arch Linux (provides bootstrap tools)\n")
+        f.write("#   - Target Installation: User's choice (Arch, Debian, Ubuntu, etc.)\n")
+        f.write("# \n")
+        f.write("# How it works:\n")
+        f.write("#   1. User boots Arch-based live ISO\n")
+        f.write("#   2. Calamares installer loads this configuration\n")
+        f.write("#   3. User selects BASE DISTRIBUTION (which OS to install)\n")
+        f.write("#   4. User selects packages compatible with chosen distro\n")
+        f.write("#   5. Custom module bootstraps selected distro to disk\n")
+        f.write("# \n")
+        f.write("# Auto-generated from manifests - DO NOT EDIT MANUALLY\n")
+        f.write("# \n\n")
         write_yaml(groups, f)
     
-    print(f"✓ Generated {output_file}")
-    print(f"  Groups: {len(groups)}")
+    print(f"[PASS] Generated netinstall configuration")
+    print(f"       Output: {output_file}")
+    print(f"       Groups: {len(groups)}")
+    print(f"       Architecture: ONE ISO → ANY DISTRO")
+    
+    return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
+

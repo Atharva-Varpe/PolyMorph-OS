@@ -36,6 +36,14 @@ qt5-svg
 libsoup
 python-joblib
 
+# --- MULTI-DISTRO BOOTSTRAP TOOLS ---
+# Required to install different distributions from one ISO
+debootstrap          # For Debian/Ubuntu installation
+debian-archive-keyring
+ubuntu-keyring
+# Note: dnf, zypper, xbps, apk would require AUR or custom repos
+# For now focusing on Arch + Debian/Ubuntu support
+
 # --- UTILS ---
 git
 wget

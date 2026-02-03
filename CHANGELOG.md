@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - Universal Multi-Distribution Installer - 2024
+
+### Major Features
+
+**ONE ISO → ANY DISTRO Architecture**
+- Single universal ISO that can install any major Linux distribution
+- User downloads once, chooses target distribution during installation
+- Eliminates need for per-distribution ISO downloads
+
+#### Multi-Distribution Support
+- **Base Distribution Selector** in Calamares netinstall
+  - Arch Linux (stable, full support)
+  - Debian (experimental, Bookworm 12)
+  - Ubuntu (experimental, Noble 24.04)
+  - Fedora, openSUSE, Gentoo, Void, Alpine (planned)
+
+- **Custom Bootstrap Module** (`polymorph_bootstrap.py`)
+  - Detects selected base distribution from package markers
+  - Calls appropriate bootstrap tool:
+    - Arch: `pacstrap` (native)
+    - Debian/Ubuntu: `debootstrap`
+    - Fedora: `dnf --installroot` (planned)
+    - openSUSE: `zypper --root` (planned)
+  - Handles distribution-specific configuration
+
+- **Bootstrap Tools in Live ISO**
+  - `debootstrap` for Debian/Ubuntu
+  - `debian-archive-keyring` and `ubuntu-keyring`
+  - Future: Fedora, openSUSE tooling
+
+#### Universal Package System
+- **Manifest Format**: Arch package names used as universal identifiers
+- **Cross-Distribution Translation**: Bootstrap module maps to target distro packages
+- **Compatibility Matrix**: Validates combinations across all distributions
+- **Distribution-Agnostic Components**: Kernels, desktops, drivers work with any base
+
+### Architecture Changes
+- Live ISO remains Arch-based (stability, tooling)
+- Target system can be any supported distribution
+- Calamares sequence updated: mount → bootstrap → packages → bootloader
+- No squashfs unpacking - base system bootstrapped directly
+
 ## [0.2.0] - Security Hardening Release - 2024
 
 ### Security Fixes ⚠️ CRITICAL
