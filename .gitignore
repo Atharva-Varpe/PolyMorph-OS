@@ -9,6 +9,9 @@ out/
 .claude-flow/
 .swarm/
 .github/workflows/
+.mcp.json
+CLAUDE.md
+plan.txt
 
 # OS-specific
 .DS_Store
