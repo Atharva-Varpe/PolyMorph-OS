@@ -44,7 +44,25 @@ ubuntu-keyring
 # Note: dnf, zypper, xbps, apk would require AUR or custom repos
 # For now focusing on Arch + Debian/Ubuntu support
 
-# --- UTILS ---
+# --- AUDIO ---
+pipewire
+wireplumber
+pipewire-pulse
+pipewire-alsa
+
+# --- FONTS ---
+noto-fonts
+noto-fonts-emoji
+
+# --- KDE PLASMA EXTRAS (for functional live session) ---
+plasma-pa
+breeze
+breeze-gtk
+kde-gtk-config
+kscreen
+xdg-desktop-portal-kde
+xdg-user-dirs
+
 git
 wget
 nano

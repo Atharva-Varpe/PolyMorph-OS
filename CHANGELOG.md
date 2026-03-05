@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - ISO Release & Fixes - 2026-03-05
+
+### Fixed
+
+**Boot Branding**
+- Replaced all "Arch Linux install medium" labels with "PolyMorph Linux" across
+  GRUB (UEFI/BIOS), systemd-boot EFI entries, syslinux BIOS and PXE configs
+
+**ISO Profile**
+- Bumped `iso_version` from `0.1.0` to `1.1.0` in `profiledef.sh`
+- Added `file_permissions` entries so `customize_airootfs.sh` and the first-boot
+  script are marked executable inside the squashfs image
+
+**Live Environment**
+- `customize_airootfs.sh`: creates `polymorph` live user (password: polymorph),
+  configures sudoers, sets hostname `polymorph-live`, runs `locale-gen`, and
+  initialises the pacman keyring so in-installer package downloads succeed
+
+**Package List**
+- Added `pipewire`, `wireplumber`, `pipewire-pulse`, `pipewire-alsa` for audio
+- Added `noto-fonts`, `noto-fonts-emoji` for font coverage
+- Added `plasma-pa`, `breeze`, `breeze-gtk`, `kde-gtk-config`, `kscreen`,
+  `xdg-desktop-portal-kde`, `xdg-user-dirs` for a fully functional KDE live session
+
+**First-Boot Wizard**
+- Complete rewrite of `polymorph-first-boot`; the previous version contained
+  orphaned code fragments, mismatched if/fi blocks, and broken function bodies
+  that would have caused the wizard to crash on launch
+
+**Calamares Branding**
+- Updated version strings to `1.1.0` in `branding.desc`
+
 ## [1.0.0] - Universal Multi-Distribution Installer - 2024
 
 ### Major Features

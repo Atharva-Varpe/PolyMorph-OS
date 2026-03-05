@@ -4,7 +4,7 @@ iso_name="polymorph"
 iso_label="POLYMORPH_$(date +%Y%m)"
 iso_publisher="PolyMorph Project"
 iso_application="PolyMorph Installer"
-iso_version="0.1.0"
+iso_version="1.1.0"
 install_dir="arch"
 
 bootmodes=(
@@ -20,4 +20,6 @@ airootfs_image_tool_options=("-comp" "zstd" "-Xcompression-level" "15")
 
 file_permissions=(
   ["/etc/shadow"]="0:0:400"
+  ["/root/customize_airootfs.sh"]="0:0:755"
+  ["/usr/local/bin/polymorph-first-boot"]="0:0:755"
 )
