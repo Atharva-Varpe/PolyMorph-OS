@@ -23,6 +23,13 @@ echo "LANG=en_US.UTF-8" > /etc/locale.conf
 pacman-key --init
 pacman-key --populate archlinux
 
+# Apply Calamares config overlay (overrides package defaults)
+if [[ -d /root/calamares-overlay ]]; then
+    mkdir -p /etc/calamares
+    cp -af /root/calamares-overlay/. /etc/calamares/
+    rm -rf /root/calamares-overlay
+fi
+
 # Enable basic services for live session
 systemctl enable NetworkManager.service
 systemctl enable sddm.service
