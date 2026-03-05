@@ -4,6 +4,12 @@ out/
 *.iso
 *.img
 
+# Claude / AI tooling (never commit these)
+.claude/
+.claude-flow/
+.swarm/
+.github/workflows/
+
 # OS-specific
 .DS_Store
 Thumbs.db
