@@ -32,4 +32,4 @@ fi
 
 # Enable basic services for live session
 systemctl enable NetworkManager.service
-systemctl enable sddm.service
+systemctl enable lightdm.service

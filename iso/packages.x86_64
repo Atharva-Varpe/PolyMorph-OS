@@ -5,7 +5,6 @@ linux-firmware
 mkinitcpio
 sudo
 arch-install-scripts
-zsh
 bash
 
 # --- BOOTLOADERS (For the ISO to boot on UEFI/BIOS) ---
@@ -15,13 +14,16 @@ syslinux
 dosfstools
 mtools
 
-# --- DESKTOP (KDE Plasma for Live Environment) ---
-plasma-meta
-sddm
-konsole
-dolphin
+# --- DESKTOP (XFCE - lightweight live environment) ---
+xfce4
+xfce4-terminal
+thunar
 
-# --- DRIVERS (Crucial for graphics/wifi/vm) ---
+# --- DISPLAY MANAGER ---
+lightdm
+lightdm-gtk-greeter
+
+# --- DRIVERS (graphics/wifi/vm support) ---
 mesa
 xf86-video-amdgpu
 xf86-video-intel
@@ -37,12 +39,9 @@ libsoup
 python-joblib
 
 # --- MULTI-DISTRO BOOTSTRAP TOOLS ---
-# Required to install different distributions from one ISO
 debootstrap
 debian-archive-keyring
 ubuntu-keyring
-# Note: dnf, zypper, xbps, apk would require AUR or custom repos
-# For now focusing on Arch + Debian/Ubuntu support
 
 # --- AUDIO ---
 pipewire
@@ -52,19 +51,10 @@ pipewire-alsa
 
 # --- FONTS ---
 noto-fonts
-noto-fonts-emoji
 
-# --- KDE PLASMA EXTRAS (for functional live session) ---
-plasma-pa
-breeze
-breeze-gtk
-kde-gtk-config
-kscreen
-xdg-desktop-portal-kde
-xdg-user-dirs
-
+# --- UTILITIES ---
 git
 wget
 nano
 os-prober
-
+xdg-user-dirs
