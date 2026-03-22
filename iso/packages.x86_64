@@ -42,6 +42,7 @@ python-joblib
 debootstrap
 debian-archive-keyring
 ubuntu-keyring
+dnf
 
 # --- AUDIO ---
 pipewire

@@ -10,7 +10,7 @@ base_targets:
     note: Use debootstrap with ubuntu suites; add ubuntu-keyring if available.
   fedora:
     packages: [dnf]
-    note: Use dnf --installroot for Fedora-style roots.
+    note: Fedora base system (Experimental) — bootstrapped via dnf --installroot.
   opensuse:
     packages: [zypper]
     note: Use zypper --root for openSUSE-style roots.

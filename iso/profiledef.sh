@@ -4,7 +4,7 @@ iso_name="polymorph"
 iso_label="POLYMORPH_$(date +%Y%m)"
 iso_publisher="PolyMorph Project"
 iso_application="PolyMorph Installer"
-iso_version="1.1.0"
+iso_version="1.2.0"
 install_dir="arch"
 
 bootmodes=(

@@ -45,17 +45,65 @@ ask_yn() {
 
 valid_pkg() { [[ "$1" =~ ^[a-zA-Z0-9._+-]+$ ]]; }
 
-log "First-boot wizard started by user: $USER"
+# ── Detect distro and set package manager ─────────────────────────────────
+DISTRO_ID="unknown"
+if [ -f /etc/os-release ]; then
+    # shellcheck disable=SC1091
+    . /etc/os-release
+    DISTRO_ID="${ID:-unknown}"
+fi
+
+do_update() {
+    case "$DISTRO_ID" in
+        arch|endeavouros|manjaro|cachyos) sudo pacman -Syu --noconfirm ;;
+        fedora)                           sudo dnf upgrade -y ;;
+        debian|ubuntu|linuxmint|pop)      sudo apt-get update && sudo apt-get upgrade -y ;;
+        *)                                sudo pacman -Syu --noconfirm ;;
+    esac
+}
+
+do_install() {
+    case "$DISTRO_ID" in
+        arch|endeavouros|manjaro|cachyos) sudo pacman -S --noconfirm "$@" ;;
+        fedora)                           sudo dnf install -y "$@" ;;
+        debian|ubuntu|linuxmint|pop)      sudo apt-get install -y "$@" ;;
+        *)                                sudo pacman -S --noconfirm "$@" ;;
+    esac
+}
+
+# Map generic package names to distro-specific names
+pkg_name() {
+    local generic="$1"
+    case "$generic:$DISTRO_ID" in
+        "devtools:arch"|"devtools:endeavouros"|"devtools:manjaro"|"devtools:cachyos")
+            echo "base-devel" ;;
+        "devtools:fedora")  echo "@c-development" ;;
+        "devtools:debian"|"devtools:ubuntu"|"devtools:linuxmint"|"devtools:pop")
+            echo "build-essential" ;;
+        "office:arch"|"office:endeavouros"|"office:manjaro"|"office:cachyos")
+            echo "libreoffice-fresh" ;;
+        "office:"*)         echo "libreoffice" ;;
+        *)                  echo "$generic" ;;
+    esac
+}
+
+PKG_MANAGER_NAME="pacman"
+case "$DISTRO_ID" in
+    fedora)                          PKG_MANAGER_NAME="dnf" ;;
+    debian|ubuntu|linuxmint|pop)     PKG_MANAGER_NAME="apt" ;;
+esac
+
+log "First-boot wizard started by user: $USER (distro: $DISTRO_ID, pkg: $PKG_MANAGER_NAME)"
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║          Welcome to PolyMorph Linux! 🎉                ║${NC}"
+echo -e "${BLUE}║          Welcome to PolyMorph Linux!                   ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
 # ── 1. System Update ──────────────────────────────────────────────────────
-echo -e "${GREEN}[1/4] System Update${NC}"
+echo -e "${GREEN}[1/5] System Update${NC}"
 if ask_yn "Update system packages now?" "y"; then
     log "Starting system update"
-    if sudo pacman -Syu --noconfirm 2>&1 | sudo tee -a "$LOG_FILE" >/dev/null; then
+    if do_update 2>&1 | sudo tee -a "$LOG_FILE" >/dev/null; then
         echo -e "${GREEN}✓ System updated${NC}"
         log "System update complete"
     else
@@ -63,13 +111,13 @@ if ask_yn "Update system packages now?" "y"; then
         log "System update failed"
     fi
 else
-    echo "Skipped. Run: sudo pacman -Syu"
+    echo "Skipped."
     log "System update skipped"
 fi
 echo ""
 
 # ── 2. Network ────────────────────────────────────────────────────────────
-echo -e "${GREEN}[2/4] Network${NC}"
+echo -e "${GREEN}[2/5] Network${NC}"
 if ! systemctl is-enabled NetworkManager &>/dev/null; then
     if ask_yn "Enable NetworkManager?" "y"; then
         sudo systemctl enable --now NetworkManager
@@ -82,25 +130,25 @@ fi
 echo ""
 
 # ── 3. Optional Software ──────────────────────────────────────────────────
-echo -e "${GREEN}[3/4] Optional Software${NC}"
+echo -e "${GREEN}[3/5] Optional Software${NC}"
 declare -A APPS=(
     [firefox]="Firefox browser"
     [vlc]="VLC media player"
-    [libreoffice-fresh]="LibreOffice suite"
+    [office]="LibreOffice suite"
     [git]="Git version control"
-    [base-devel]="Development tools"
+    [devtools]="Development tools"
 )
 INSTALL=()
-for pkg in "${!APPS[@]}"; do
-    if ask_yn "  Install ${APPS[$pkg]}?" "n"; then
-        INSTALL+=("$pkg")
+for key in "${!APPS[@]}"; do
+    if ask_yn "  Install ${APPS[$key]}?" "n"; then
+        INSTALL+=("$(pkg_name "$key")")
     fi
 done
 
 if [ ${#INSTALL[@]} -gt 0 ]; then
     VALID=()
     for pkg in "${INSTALL[@]}"; do
-        if valid_pkg "$pkg"; then
+        if valid_pkg "$pkg" || [[ "$pkg" == @* ]]; then
             VALID+=("$pkg")
         else
             echo -e "${YELLOW}⚠ Skipping invalid package: $pkg${NC}"
@@ -109,7 +157,7 @@ if [ ${#INSTALL[@]} -gt 0 ]; then
     done
     if [ ${#VALID[@]} -gt 0 ]; then
         log "Installing: ${VALID[*]}"
-        if sudo pacman -S --noconfirm "${VALID[@]}" 2>&1 | sudo tee -a "$LOG_FILE" >/dev/null; then
+        if do_install "${VALID[@]}" 2>&1 | sudo tee -a "$LOG_FILE" >/dev/null; then
             echo -e "${GREEN}✓ Installed: ${VALID[*]}${NC}"
             log "Package install complete"
         else
@@ -121,7 +169,7 @@ fi
 echo ""
 
 # ── 4. User Groups ────────────────────────────────────────────────────────
-echo -e "${GREEN}[4/4] User Groups${NC}"
+echo -e "${GREEN}[4/5] User Groups${NC}"
 if ask_yn "Add $USER to wheel, audio, video, storage?" "y"; then
     if [[ "$USER" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
         sudo usermod -aG wheel,audio,video,storage,optical "$USER"
@@ -134,6 +182,171 @@ if ask_yn "Add $USER to wheel, audio, video, storage?" "y"; then
 fi
 echo ""
 
+# ── 5. Premade Desktop Rice ───────────────────────────────────────────────
+echo -e "${GREEN}[5/5] Premade Desktop Rice${NC}"
+echo "  Apply a premade Hyprland rice to replace or extend your installed DE."
+echo "  Only rices compatible with ${DISTRO_ID} are shown."
+echo "  Rices are cloned to ~/.local/share/polymorph-rices/"
+echo ""
+
+is_arch_based() {
+    case "$DISTRO_ID" in
+        arch|endeavouros|manjaro|cachyos|artix|garuda) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Rice registry — parallel arrays indexed 0..5
+# COMPAT: "all" | comma-separated distro IDs (arch means any arch-based)
+RICE_LABELS=(
+    "DMS (Dank Material Shell)  — full Wayland shell, replaces waybar/lock/idle"
+    "ML4W                       — feature-rich Hyprland dotfiles"
+    "HyDE                       — aesthetic dots + multi-theme switcher"
+    "Caelestia                  — Quickshell widgets Hyprland rice"
+    "JaKooLit Hyprland-Dots     — multi-distro Hyprland install scripts"
+    "dots-hyprland (end-4)      — usability-first Hyprland dotfiles"
+)
+RICE_REPOS=(
+    "https://github.com/AvengeMedia/DankMaterialShell"
+    "https://github.com/mylinuxforwork/dotfiles"
+    "https://github.com/HyDE-Project/HyDE"
+    "https://github.com/caelestia-dots/caelestia"
+    "https://github.com/JaKooLit/Hyprland-Dots"
+    "https://github.com/end-4/dots-hyprland"
+)
+RICE_KEYS=(
+    "__DMS__"
+    "bash bin/ml4w-hyprland-setup"
+    "bash Scripts/install.sh"
+    "__CAELESTIA__"
+    ""
+    ""
+)
+# "arch" in the compat list means any arch-based distro
+RICE_COMPAT=(
+    "all"
+    "arch,fedora,opensuse"
+    "arch"
+    "arch"
+    "all"
+    "arch,fedora,debian,ubuntu"
+)
+
+# Returns 0 if this distro is compatible with the compat string
+rice_is_compat() {
+    local compat="$1"
+    [ "$compat" = "all" ] && return 0
+    is_arch_based && echo ",$compat," | grep -q ",arch," && return 0
+    echo ",$compat," | grep -q ",$DISTRO_ID," && return 0
+    return 1
+}
+
+# Build dynamic menu — only compatible rices + "None" at the end
+MENU_INDICES=()
+MENU_NUM=1
+for i in "${!RICE_LABELS[@]}"; do
+    if rice_is_compat "${RICE_COMPAT[$i]}"; then
+        printf "  %d) %s\n" "$MENU_NUM" "${RICE_LABELS[$i]}"
+        printf "     %s\n" "${RICE_REPOS[$i]}"
+        MENU_INDICES+=("$i")
+        ((MENU_NUM++))
+    fi
+done
+NONE_NUM=$MENU_NUM
+printf "  %d) None — keep default DE configuration\n" "$NONE_NUM"
+echo ""
+
+RICE_CHOICE=""
+while true; do
+    read -r -p "  Enter choice [1-${NONE_NUM}]: " RICE_CHOICE
+    if [[ "$RICE_CHOICE" =~ ^[0-9]+$ ]] && \
+       [ "$RICE_CHOICE" -ge 1 ] && [ "$RICE_CHOICE" -le "$NONE_NUM" ]; then
+        break
+    fi
+    echo "  Please enter a number between 1 and ${NONE_NUM}."
+done
+
+install_rice() {
+    local name="$1" repo="$2" install_cmd="${3:-}"
+
+    if ! command -v git &>/dev/null; then
+        echo -e "${YELLOW}Installing git (required for rice cloning)...${NC}"
+        if ! do_install git 2>&1 | sudo tee -a "$LOG_FILE" >/dev/null; then
+            echo -e "${RED}✗ Failed to install git — skipping rice.${NC}"
+            log "Failed to install git for rice: $name"
+            return 1
+        fi
+    fi
+
+    if ! command -v hyprctl &>/dev/null; then
+        echo -e "${YELLOW}⚠ Hyprland not detected. Rice will be cloned but may not work without it.${NC}"
+        log "WARNING: hyprctl not found, proceeding anyway"
+    fi
+
+    local rice_dir="$HOME/.local/share/polymorph-rices/$name"
+    mkdir -p "$(dirname "$rice_dir")"
+
+    echo -e "${BLUE}Cloning $name...${NC}"
+    log "Cloning rice: $name from $repo"
+
+    if [ -d "$rice_dir/.git" ]; then
+        echo "  Updating existing clone..."
+        git -C "$rice_dir" pull --ff-only 2>&1 | tee -a "$LOG_FILE" || true
+    else
+        git clone --depth=1 "$repo" "$rice_dir" 2>&1 | tee -a "$LOG_FILE"
+    fi
+
+    if [ -n "$install_cmd" ]; then
+        echo -e "${BLUE}Running $name install script...${NC}"
+        log "Running install script for $name"
+        ( cd "$rice_dir" && eval "$install_cmd" ) 2>&1 | tee -a "$LOG_FILE" || {
+            echo -e "${YELLOW}⚠ Install script had errors — check $LOG_FILE${NC}"
+            log "Rice install script had errors: $name"
+        }
+    else
+        echo -e "${GREEN}✓ $name cloned to: $rice_dir${NC}"
+        echo "  Follow the README at $repo to complete setup."
+    fi
+
+    log "Rice step done: $name"
+}
+
+if [ "$RICE_CHOICE" -eq "$NONE_NUM" ]; then
+    echo "  Keeping default DE configuration."
+    log "Rice install: none"
+else
+    rice_idx="${MENU_INDICES[$((RICE_CHOICE - 1))]}"
+    rice_repo="${RICE_REPOS[$rice_idx]}"
+    rice_key="${RICE_KEYS[$rice_idx]}"
+    # Use the part before the first space as a short dir name
+    rice_short="${RICE_LABELS[$rice_idx]%%[[:space:]]*}"
+
+    case "$rice_key" in
+        __DMS__)
+            if ! command -v curl &>/dev/null; then
+                do_install curl 2>&1 | sudo tee -a "$LOG_FILE" >/dev/null || true
+            fi
+            log "Installing DMS via dankinstall"
+            echo -e "${BLUE}Running DankMaterialShell installer...${NC}"
+            curl -fsSL https://install.danklinux.com | sh 2>&1 | tee -a "$LOG_FILE" || {
+                echo -e "${YELLOW}⚠ DMS installer had errors — check $LOG_FILE${NC}"
+                log "DMS install had errors"
+            }
+            ;;
+        __CAELESTIA__)
+            if ! command -v fish &>/dev/null; then
+                echo "Installing fish (required by Caelestia)..."
+                do_install fish 2>&1 | sudo tee -a "$LOG_FILE" >/dev/null || true
+            fi
+            install_rice "caelestia" "$rice_repo" "fish install.fish --noconfirm"
+            ;;
+        *)
+            install_rice "$rice_short" "$rice_repo" "$rice_key"
+            ;;
+    esac
+fi
+echo ""
+
 # ── Summary ───────────────────────────────────────────────────────────────
 sudo mkdir -p /var/lib/polymorph
 sudo tee /var/lib/polymorph/install-summary.txt >/dev/null <<EOF
@@ -141,6 +354,7 @@ PolyMorph Installation Summary
 ===============================
 Date:    $(date)
 Kernel:  $(uname -r)
+Distro:  ${DISTRO_ID}
 Desktop: ${XDG_CURRENT_DESKTOP:-unknown}
 User:    $USER
 Host:    $(hostname)
@@ -150,11 +364,13 @@ sudo touch "$WIZARD_MARKER"
 log "First-boot wizard complete"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║          Setup Complete! Enjoy PolyMorph Linux ✓       ║${NC}"
+echo -e "${BLUE}║          Setup Complete! Enjoy PolyMorph Linux         ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo "  Update:   sudo pacman -Syu"
-echo "  Install:  sudo pacman -S <package>"
-echo "  Search:   pacman -Ss <keyword>"
+case "$PKG_MANAGER_NAME" in
+    pacman) echo "  Update:   sudo pacman -Syu" ; echo "  Install:  sudo pacman -S <package>" ;;
+    dnf)    echo "  Update:   sudo dnf upgrade" ; echo "  Install:  sudo dnf install <package>" ;;
+    apt)    echo "  Update:   sudo apt upgrade" ; echo "  Install:  sudo apt install <package>" ;;
+esac
 echo ""
-read -rp "Press Enter to continue…"
+read -rp "Press Enter to continue..."

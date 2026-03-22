@@ -34,7 +34,7 @@ except Exception:  # pragma: no cover
 
 MARKER_PREFIX = "__POLYMORPH_BASE__"
 MARKER_SUFFIX = "__"
-SUPPORTED_BASES = {"arch", "debian", "ubuntu"}
+SUPPORTED_BASES = {"arch", "debian", "ubuntu", "fedora"}
 
 
 @dataclass(frozen=True)
@@ -43,6 +43,8 @@ class BootstrapConfig:
     debian_mirror: str = "http://deb.debian.org/debian"
     ubuntu_suite: str = "noble"
     ubuntu_mirror: str = "http://archive.ubuntu.com/ubuntu"
+    fedora_release: str = "40"
+    fedora_mirror: str = "https://mirrors.fedoraproject.org"
     debootstrap_arch: str = "amd64"
 
 
@@ -150,11 +152,14 @@ def _get_config() -> BootstrapConfig:
         return BootstrapConfig()
     debian = cfg.get("debian", {}) if isinstance(cfg.get("debian"), dict) else {}
     ubuntu = cfg.get("ubuntu", {}) if isinstance(cfg.get("ubuntu"), dict) else {}
+    fedora = cfg.get("fedora", {}) if isinstance(cfg.get("fedora"), dict) else {}
     return BootstrapConfig(
         debian_suite=str(debian.get("suite", BootstrapConfig.debian_suite)),
         debian_mirror=str(debian.get("mirror", BootstrapConfig.debian_mirror)),
         ubuntu_suite=str(ubuntu.get("suite", BootstrapConfig.ubuntu_suite)),
         ubuntu_mirror=str(ubuntu.get("mirror", BootstrapConfig.ubuntu_mirror)),
+        fedora_release=str(fedora.get("release", BootstrapConfig.fedora_release)),
+        fedora_mirror=str(fedora.get("mirror", BootstrapConfig.fedora_mirror)),
         debootstrap_arch=str(cfg.get("debootstrapArch", BootstrapConfig.debootstrap_arch)),
     )
 
@@ -217,6 +222,42 @@ def _apt_install(root_mount_point: str, packages: Sequence[str]) -> None:
         check=True,
         env=env,
     )
+
+
+def bootstrap_fedora(root_mount_point: str, selected_packages: Sequence[str], cfg: BootstrapConfig) -> None:
+    """Bootstrap Fedora using dnf --installroot."""
+    if libcalamares is not None:
+        libcalamares.utils.debug(f"Bootstrapping Fedora to {root_mount_point}")
+
+    # Create minimal directory structure required by rpm/dnf
+    (Path(root_mount_point) / "var/lib/rpm").mkdir(parents=True, exist_ok=True)
+
+    # Initialize rpm database
+    _run(["rpm", "--root", root_mount_point, "--initdb"])
+
+    # Install minimal Fedora system via dnf --installroot
+    cmd = [
+        "dnf", "install", "-y",
+        "--installroot", root_mount_point,
+        "--releasever", cfg.fedora_release,
+        "--setopt=install_weak_deps=False",
+        "--allowerasing",
+        "fedora-release", "kernel-core", "kernel",
+        "systemd", "systemd-udev", "dracut",
+        "grub2", "sudo", "ca-certificates",
+        "dbus", "NetworkManager",
+    ]
+
+    if Path("/sys/firmware/efi").exists():
+        cmd.extend(["grub2-efi-x64", "efibootmgr"])
+    else:
+        cmd.extend(["grub2-pc"])
+
+    cmd.append("os-prober")
+    _run(cmd)
+
+    # Copy resolv.conf so chroot commands have network access
+    _write_resolv_conf(root_mount_point)
 
 
 def bootstrap_debian_or_ubuntu(root_mount_point: str, selected_packages: Sequence[str], variant: str, cfg: BootstrapConfig) -> None:
@@ -302,6 +343,10 @@ def run():
         elif base_distro == "ubuntu":
             libcalamares.job.setprogress(0.2)
             bootstrap_debian_or_ubuntu(root_mount_point, selected_packages, "ubuntu", cfg)
+            libcalamares.job.setprogress(0.9)
+        elif base_distro == "fedora":
+            libcalamares.job.setprogress(0.2)
+            bootstrap_fedora(root_mount_point, selected_packages, cfg)
             libcalamares.job.setprogress(0.9)
         else:
             return (
