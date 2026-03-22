@@ -13,7 +13,7 @@ Get the latest release from the [releases page](https://github.com/Atharva-Varpe
 | Arch Linux   | Stable         | pacstrap      |
 | Debian       | Experimental   | debootstrap   |
 | Ubuntu       | Experimental   | debootstrap   |
-| Fedora       | Planned        | dnf           |
+| Fedora       | Experimental   | dnf           |
 | openSUSE     | Planned        | zypper        |
 | Gentoo       | Planned        | stage3        |
 | Void Linux   | Planned        | xbps          |

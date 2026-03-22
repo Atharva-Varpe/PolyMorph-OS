@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - Fedora Support & Rices - 2026-03-22
+
+### Added
+
+**Fedora Base Support (Experimental)**
+- Implemented `bootstrap_fedora()` in `polymorph_bootstrap.py` using `dnf --installroot`
+- Bootstraps a minimal Fedora system: `fedora-release`, `kernel`, `systemd`, `grub2`,
+  `NetworkManager`, UEFI or BIOS grub packages selected automatically
+- Added `fedora_release` (default: `40`) and `fedora_mirror` config fields to `BootstrapConfig`
+- Added `fedora:` section to `polymorph_bootstrap.conf` for release/mirror overrides
+- Added `dnf` to `iso/packages.x86_64` so the live environment can run `dnf --installroot`
+- Updated `SUPPORTED_BASES` to include `"fedora"`
+
+**Premade Desktop Rice Installer (First-Boot Wizard)**
+- New step 5 in `polymorph-first-boot`: interactive rice selection with six curated options:
+  1. **DMS (DankMaterialShell)** — Full Wayland desktop shell, supports Arch/Fedora/Debian/Ubuntu/openSUSE/Gentoo via `dankinstall` one-liner ([github.com/AvengeMedia/DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell))
+  2. **ML4W** — Feature-rich Hyprland dotfiles, supports Arch/Fedora/openSUSE ([github.com/mylinuxforwork/dotfiles](https://github.com/mylinuxforwork/dotfiles))
+  3. **HyDE** — Aesthetic dynamic Hyprland dots with multi-theme switcher, Arch-based ([github.com/HyDE-Project/HyDE](https://github.com/HyDE-Project/HyDE))
+  4. **Caelestia** — Hyprland + Quickshell rice, Arch only ([github.com/caelestia-dots/caelestia](https://github.com/caelestia-dots/caelestia))
+  5. **JaKooLit Hyprland-Dots** — Multi-distro Hyprland configs ([github.com/JaKooLit/Hyprland-Dots](https://github.com/JaKooLit/Hyprland-Dots))
+  6. **dots-hyprland (end-4)** — Usability-first Hyprland dotfiles ([github.com/end-4/dots-hyprland](https://github.com/end-4/dots-hyprland))
+- Rices cloned to `~/.local/share/polymorph-rices/<name>` and updated on re-run
+- **Dynamic distro-aware menu**: menu is built at runtime — only shows rices compatible with
+  the installed distro; Arch-only rices (HyDE, Caelestia) are hidden on Fedora/Debian/Ubuntu
+- Last option is always **"None — keep default DE configuration"** so users who want their
+  selected DE without any rice overlay can skip cleanly
+
+**Distro-Aware First-Boot Wizard**
+- First-boot wizard now detects installed distro via `/etc/os-release`
+- Package manager commands (update/install) automatically use `pacman`, `dnf`, or `apt`
+  depending on the installed base distribution
+- Package name mapping for distro-specific equivalents (e.g. `base-devel` → `@c-development`
+  on Fedora, `build-essential` on Debian/Ubuntu)
+- Caelestia rice install correctly warns and skips on non-Arch systems
+
+### Changed
+- Fedora status updated from "Planned" to "Experimental" in README and netinstall manifest
+- ISO version bumped to `1.2.0` in `profiledef.sh` and `branding.desc`
+
+### Fixed
+- First-boot wizard `[1/4]` steps re-numbered to `[1/5]` to reflect the new rice step
+- First-boot summary now records the installed distro ID
+
 ## [1.1.0] - ISO Release & Fixes - 2026-03-05
 
 ### Fixed
