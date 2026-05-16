@@ -43,6 +43,7 @@ debootstrap
 debian-archive-keyring
 ubuntu-keyring
 dnf
+wget
 
 # --- AUDIO ---
 pipewire

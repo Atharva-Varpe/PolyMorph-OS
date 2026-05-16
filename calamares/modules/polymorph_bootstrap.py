@@ -34,7 +34,7 @@ except Exception:  # pragma: no cover
 
 MARKER_PREFIX = "__POLYMORPH_BASE__"
 MARKER_SUFFIX = "__"
-SUPPORTED_BASES = {"arch", "debian", "ubuntu", "fedora"}
+SUPPORTED_BASES = {"arch", "debian", "ubuntu", "fedora", "alpine"}
 
 
 @dataclass(frozen=True)
@@ -45,6 +45,8 @@ class BootstrapConfig:
     ubuntu_mirror: str = "http://archive.ubuntu.com/ubuntu"
     fedora_release: str = "40"
     fedora_mirror: str = "https://mirrors.fedoraproject.org"
+    alpine_release: str = "3.20"
+    alpine_mirror: str = "https://dl-cdn.alpinelinux.org/alpine"
     debootstrap_arch: str = "amd64"
 
 
@@ -153,6 +155,7 @@ def _get_config() -> BootstrapConfig:
     debian = cfg.get("debian", {}) if isinstance(cfg.get("debian"), dict) else {}
     ubuntu = cfg.get("ubuntu", {}) if isinstance(cfg.get("ubuntu"), dict) else {}
     fedora = cfg.get("fedora", {}) if isinstance(cfg.get("fedora"), dict) else {}
+    alpine = cfg.get("alpine", {}) if isinstance(cfg.get("alpine"), dict) else {}
     return BootstrapConfig(
         debian_suite=str(debian.get("suite", BootstrapConfig.debian_suite)),
         debian_mirror=str(debian.get("mirror", BootstrapConfig.debian_mirror)),
@@ -160,6 +163,8 @@ def _get_config() -> BootstrapConfig:
         ubuntu_mirror=str(ubuntu.get("mirror", BootstrapConfig.ubuntu_mirror)),
         fedora_release=str(fedora.get("release", BootstrapConfig.fedora_release)),
         fedora_mirror=str(fedora.get("mirror", BootstrapConfig.fedora_mirror)),
+        alpine_release=str(alpine.get("release", BootstrapConfig.alpine_release)),
+        alpine_mirror=str(alpine.get("mirror", BootstrapConfig.alpine_mirror)),
         debootstrap_arch=str(cfg.get("debootstrapArch", BootstrapConfig.debootstrap_arch)),
     )
 
@@ -260,6 +265,38 @@ def bootstrap_fedora(root_mount_point: str, selected_packages: Sequence[str], cf
     _write_resolv_conf(root_mount_point)
 
 
+def bootstrap_alpine(root_mount_point: str, selected_packages: Sequence[str], cfg: BootstrapConfig) -> None:
+    """Bootstrap Alpine Linux using apk-tools-static."""
+    if libcalamares is not None:
+        libcalamares.utils.debug(f"Bootstrapping Alpine to {root_mount_point}")
+
+    root = Path(root_mount_point)
+    apk_static_url = f"{cfg.alpine_mirror}/v{cfg.alpine_release}/releases/x86_64/apk-tools-static.tar.gz"
+
+    # Download apk-tools-static (self-contained, no dependencies needed on host)
+    (root / "tmp").mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["wget", "-q", "-O", str(root / "tmp" / "apk-tools-static.tar.gz"), apk_static_url],
+        check=True,
+    )
+
+    # Extract to /tmp in the target root
+    subprocess.run(
+        ["tar", "-xzf", str(root / "tmp" / "apk-tools-static.tar.gz"), "-C", str(root / "tmp")],
+        check=True,
+    )
+
+    # Run apk directly (static binary, no shell wrapper needed)
+    apk_bin = str(root / "tmp" / "sbin" / "apk")
+    apk = lambda subcmd, *args: subprocess.run([apk_bin, subcmd, "--root", root_mount_point, "--arch", "x86_64"] + list(args), check=True)
+
+    apk("update")
+    apk("add", "--init", "apk-tools", "busybox", "alpine-base", "linux-lts", "grub-efi-x64", "efibootmgr", "os-prober", "NetworkManager", "openssh")
+
+    # Copy resolv.conf so chroot commands have network access
+    _write_resolv_conf(root_mount_point)
+
+
 def bootstrap_debian_or_ubuntu(root_mount_point: str, selected_packages: Sequence[str], variant: str, cfg: BootstrapConfig) -> None:
     """Bootstrap Debian/Ubuntu with debootstrap and install minimal packages with apt."""
     if libcalamares is not None:
@@ -347,6 +384,10 @@ def run():
         elif base_distro == "fedora":
             libcalamares.job.setprogress(0.2)
             bootstrap_fedora(root_mount_point, selected_packages, cfg)
+            libcalamares.job.setprogress(0.9)
+        elif base_distro == "alpine":
+            libcalamares.job.setprogress(0.2)
+            bootstrap_alpine(root_mount_point, selected_packages, cfg)
             libcalamares.job.setprogress(0.9)
         else:
             return (
