@@ -6,6 +6,8 @@ A single bootable ISO that installs any major Linux distribution. Boot once, pic
 
 Get the latest release from the [releases page](https://github.com/Atharva-Varpe/PolyMorph-OS/releases).
 
+[![Release](https://img.shields.io/github/v/release/Atharva-Varpe/PolyMorph-OS?color=blue)](https://github.com/Atharva-Varpe/PolyMorph-OS/releases)
+
 ## Distribution Support
 
 | Distribution | Status         | Bootstrap     |
